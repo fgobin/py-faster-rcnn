@@ -18,6 +18,7 @@ from fast_rcnn.nms_wrapper import nms
 import cPickle
 from utils.blob import im_list_to_blob
 import os
+import time
 
 def _get_image_blob(im):
     """Converts an image into a network input.
@@ -291,5 +292,7 @@ def test_net(net, imdb, max_per_image=100, thresh=0.05, vis=False):
     with open(det_file, 'wb') as f:
         cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
 
+
+    time.sleep(20)
     print 'Evaluating detections'
     imdb.evaluate_detections(all_boxes, output_dir)
