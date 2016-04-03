@@ -244,6 +244,7 @@ class imdb(object):
                                             b[i]['gt_classes']))
             a[i]['gt_overlaps'] = scipy.sparse.vstack([a[i]['gt_overlaps'],
                                                        b[i]['gt_overlaps']])
+            print "extracting seg_areas"
             a[i]['seg_areas'] = np.hstack((a[i]['seg_areas'],
                                            b[i]['seg_areas']))
         return a

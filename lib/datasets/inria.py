@@ -125,13 +125,13 @@ class inria(imdb):
             print '{} ss roidb loaded from {}'.format(self.name, cache_file)
             return roidb
 
+        print "Imageset name " + self._image_set
         if self._image_set != 'test':
             gt_roidb = self.gt_roidb()
             ss_roidb = self._load_selective_search_roidb(gt_roidb)
             roidb = datasets.imdb.merge_roidbs(gt_roidb, ss_roidb)
         else:
             roidb = self._load_selective_search_roidb(None)
-            print len(roidb)
 	with open(cache_file, 'wb') as fid:
             cPickle.dump(roidb, fid, cPickle.HIGHEST_PROTOCOL)
         print 'wrote ss roidb to {}'.format(cache_file)
@@ -139,6 +139,7 @@ class inria(imdb):
         return roidb
 
     def rpn_roidb(self):
+        print "Imageset name " + self._image_set
         if self._image_set != 'test':
             gt_roidb = self.gt_roidb()
             rpn_roidb = self._load_rpn_roidb(gt_roidb)
@@ -236,6 +237,10 @@ class inria(imdb):
         gt_classes = np.zeros((num_objs), dtype=np.int32)
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
 
+#new code
+        # "Seg" area for pascal is just the box area
+        seg_areas = np.zeros((num_objs), dtype=np.float32)
+
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
             # Make pixel indexes 0-based
@@ -248,13 +253,18 @@ class inria(imdb):
             boxes[ix, :] = [x1, y1, x2, y2]
             gt_classes[ix] = cls
             overlaps[ix, cls] = 1.0
+            seg_areas[ix] = (x2 - x1 + 1) * (y2 - y1 + 1)
+        
+        print "printgg seg_areas...................."
+        print seg_areas
 
         overlaps = scipy.sparse.csr_matrix(overlaps)
 
         return {'boxes' : boxes,
                 'gt_classes': gt_classes,
                 'gt_overlaps' : overlaps,
-                'flipped' : False}
+                'flipped' : False,
+                'seg_areas' : seg_areas}
 
 
     def _get_comp_id(self):
@@ -289,12 +299,12 @@ class inria(imdb):
         return comp_id
 
     def _do_matlab_eval(self, comp_id, output_dir='output'):
-        rm_results = self.config['cleanup']
+        rm_results = False
 
         path = os.path.join(os.path.dirname(__file__),
                             'VOCdevkit-matlab-wrapper')
         cmd = 'cd {} && '.format(path)
-        cmd += '{:s} -nodisplay -nodesktop '.format(datasets.MATLAB)
+        cmd += '{:s} -nodisplay -nodesktop '.format(cfg.MATLAB)
         cmd += '-r "dbstop if error; '
         cmd += 'setenv(\'LC_ALL\',\'C\'); voc_eval(\'{:s}\',\'{:s}\',\'{:s}\',\'{:s}\',{:d}); quit;"' \
                .format(self._devkit_path, comp_id,
