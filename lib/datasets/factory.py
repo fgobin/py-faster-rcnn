@@ -12,6 +12,8 @@ __sets = {}
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 from datasets.inria import inria
+
+from datasets.caltech import caltech
 import numpy as np
 
 # Set up voc_<year>_<split> using selective search "fast" mode
@@ -21,10 +23,16 @@ for year in ['2007', '2012']:
         __sets[name] = (lambda split=split, year=year: pascal_voc(split, year))
 
 # Set up inria_<split> using selective search "fast" mode
-inria_devkit_path = '/opt/data/ds/pedestrians/INRIAPerson-adapter'
+inria_devkit_path = '/opt/data/ds/pedestrians/INRIA-faster'
 for split in ['train', 'test']:
     name = '{}_{}'.format('inria', split)
     __sets[name] = (lambda split=split: inria(split, inria_devkit_path))
+
+
+caltech_devkit_path = '/opt/data/ds/pedestrians/CALTECH-faster'
+for split in ['train', 'test']:
+    name = '{}_{}'.format('caltech', split)
+    __sets[name] = (lambda split=split: caltech(split, caltech_devkit_path))
 
 # Set up coco_2014_<split>
 for year in ['2014']:
